@@ -49,4 +49,18 @@ class BankServiceTest {
         assertEquals(createdBank, bank)
     }
 
+    @Test
+    fun  `should update bank data`(){
+        //given
+        val bank = Bank("a123", trust = 0.5, transactionFee = 5)
+        val bankAfterUpdate = Bank("a123", trust = 0.5, transactionFee = 4)
+
+        //when
+        every { dataSource.updateBank(bank) } returns bankAfterUpdate
+        val updatedBank = bankService.updateBank(bank)
+
+        //then
+        assertEquals(updatedBank, bankAfterUpdate)
+    }
+
 }
