@@ -2,7 +2,6 @@ package com.example.backendApp1.controller
 
 import com.example.backendApp1.model.Bank
 import com.fasterxml.jackson.databind.ObjectMapper
-import jdk.incubator.vector.VectorOperators
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -11,11 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.get
-import org.springframework.test.web.servlet.patch
-import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -146,12 +141,12 @@ class BankControllerTest
         }
 
         @Test
-        fun `should return BAD REQUEST if bank id doesn't exist`(){
+        fun `should return BAD REQUEST if bank id doesn't exist`() {
             //given
             val invalidBank = Bank("a123", 0.5, 4)
 
             //when
-            val preformPatch = mockMvc.patch(baseUrl){
+            val preformPatch = mockMvc.patch(baseUrl) {
                 contentType = MediaType.APPLICATION_JSON
                 content = objectMapper.writeValueAsString(invalidBank)
             }
@@ -163,5 +158,44 @@ class BankControllerTest
                     status { isNotFound() }
                 }
         }
+    }
+
+    @Nested
+    @DisplayName("DELETE api/banks/{bank}")
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    inner class DeleteBank {
+        @Test
+        fun `should delete existing bank when receiving delete request`() {
+            //given
+            val accountNumber = "1234"
+
+            //when
+            val performDelete = mockMvc.delete("$baseUrl/$accountNumber")
+
+            //then
+            performDelete
+                .andDo { print() }
+                .andExpect {
+                    status {
+                        isNoContent()
+                    }
+                }
+
+            mockMvc.get("$baseUrl/$accountNumber")
+                .andExpect { status { isNotFound() } }
+        }
+    }
+
+    @Test
+    fun `should return NOT FOUND if account number doesn't exist`(){
+        //given
+
+        val accountNumber = "invalid number"
+
+        //when
+        val preformDelete = mockMvc.delete("$baseUrl/$accountNumber")
+
+        //then
+        preformDelete.andDo { print() }.andExpect { status { isNotFound() } }
     }
 }
